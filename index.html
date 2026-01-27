@@ -1,0 +1,111 @@
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <title>骂人宝典/祖安语录</title>
+  <link rel="stylesheet" href="./css/material.deep_purple-pink.min.css">
+  <link rel="stylesheet" href="./css/styles.css">
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/clipboard.min.js"></script>
+  <link rel="icon" sizes="192x192" href="images/smile.png">
+  <link rel="shortcut icon" href="images/smile.png">
+</head>
+
+<body class="mdl-demo mdl-color--grey-100 mdl-color-text--grey-700 mdl-base">
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+  <header class="mdl-layout__header mdl-layout__header--scroll mdl-color--primary">
+    <div class="mdl-layout--large-screen-only mdl-layout__header-row" style="margin:30px">
+      <h3>骂人宝典</h3>
+    </div>
+    <div class="mdl-layout__tab-bar mdl-color--primary-dark">
+      <a href="#index" class="mdl-layout__tab is-active">首页</a>
+    </div>
+  </header>
+
+  <main class="mdl-layout__content">
+    <div class="mdl-layout__tab-panel is-active" id="index">
+
+      <section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
+        <div class="mdl-card mdl-cell mdl-cell--12-col" style="height:250px">
+          <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing"
+               style="align-items: center; margin-top: 0px; height: 100%;">
+            <div class="mdl-cell--12-col" style="text-align: center; padding: 20px;">
+              <h4 id="txt_nmsl" style="margin: 0; line-height: 1.6;">准备就绪，请开火</h4>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section--center mdl-grid mdl-grid--no-spacing">
+        <div class="section__text mdl-cell mdl-cell--12-col" align='center' style="padding-top: 20px;">
+
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent"
+                  onclick="random()" id="btn_random_max" style="margin: 0 10px;">
+            <span id="span_random_max">😤 火力全开</span>
+          </button>
+
+          <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent"
+                  style='background-color:#46c792; margin: 0 10px;' data-clipboard-text="" id="btn_nmsl">
+            <span id="span_copy">📄 复制内容</span>
+          </button>
+
+        </div>
+      </section>
+
+      <div style="text-align: center;padding-top:30px; color: #999;">⚠️ 仅供娱乐，请勿用于人身攻击。</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  var all_sentences = [];
+
+  $(document).ready(function() {
+    // 1. 读取 database.json
+    $.getJSON("./database.json", function(data) {
+      all_sentences = data;
+      console.log("数据加载完成，共 " + data.length + " 条");
+    }).fail(function() {
+      $("#txt_nmsl").text("错误：无法读取 database.json");
+    });
+
+    // 2. 初始化复制功能
+    var clipboard = new ClipboardJS('#btn_nmsl');
+    clipboard.on('success', function(e) {
+      var btnSpan = $("#span_copy");
+      var originalText = btnSpan.text();
+
+      // 变成“已复制”
+      btnSpan.text("✅ 已复制!");
+      $("#btn_nmsl").css("background-color", "#388E3C"); // 变绿提示
+
+      // 1.5秒后恢复
+      setTimeout(function() {
+        btnSpan.text(originalText);
+        $("#btn_nmsl").css("background-color", "#46c792"); // 恢复原来的颜色
+      }, 1500);
+    });
+  });
+
+  // 随机生成函数
+  function random() {
+    if (all_sentences.length === 0) {
+      // 如果本地打开（非localhost或github），可能会因为跨域失败，这里做个提示
+      $("#txt_nmsl").text("数据加载中或加载失败 (请确保通过 GitHub Pages 访问)");
+      return;
+    }
+
+    var index = Math.floor(Math.random() * all_sentences.length);
+    var text = all_sentences[index];
+
+    // 更新文字显示
+    $("#txt_nmsl").text(text);
+
+    // 更新复制按钮的剪贴板内容
+    $("#btn_nmsl").attr("data-clipboard-text", text);
+  }
+</script>
+</body>
+</html>
