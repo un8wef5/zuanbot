@@ -61,19 +61,15 @@
 
 <script>
   var all_sentences = [];
-  // 定义一个缓冲区，记录最近展示过的索引
   var recent_indexes = [];
-  // 设定缓冲区大小（例如：最近展示过的 50 条不允许重复）
   var buffer_size = 50;
 
   $(document).ready(function() {
     // 1. 读取 database.json
     $.getJSON("./database.json", function(data) {
       all_sentences = data;
-      // 在控制台打印实际数据量，请务必在电脑F12检查这个数字
       console.log("数据加载完成，实际载入: " + data.length + " 条");
 
-      // 如果数据总数小于缓冲区，自动缩小缓冲区，避免死循环
       if (data.length < buffer_size * 2) {
         buffer_size = Math.floor(data.length / 2);
       }
@@ -82,7 +78,6 @@
       $("#txt_nmsl").text("错误：无法读取 database.json");
     });
 
-    // 2. 初始化复制功能
     var clipboard = new ClipboardJS('#btn_nmsl');
     clipboard.on('success', function(e) {
       var btnSpan = $("#span_copy");
@@ -96,7 +91,6 @@
     });
   });
 
-  // 改进后的随机函数
   function random() {
     if (all_sentences.length === 0) {
       $("#txt_nmsl").text("数据加载中...");
@@ -104,18 +98,15 @@
     }
 
     var index = -1;
-    var max_retries = 10; // 最大重试次数，防止运气太差导致卡死
+    var max_retries = 10;
     var retries = 0;
 
-    // 核心逻辑：抽签，如果发现最近抽到过，就重抽
     do {
       index = Math.floor(Math.random() * all_sentences.length);
       retries++;
     } while (recent_indexes.includes(index) && retries < max_retries);
 
-    // 更新缓冲区
     recent_indexes.push(index);
-    // 如果缓冲区满了，把最早进入的那个删掉（队列先进先出）
     if (recent_indexes.length > buffer_size) {
       recent_indexes.shift();
     }
@@ -128,3 +119,4 @@
 </script>
 </body>
 </html>
+
