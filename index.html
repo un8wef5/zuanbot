@@ -28,9 +28,9 @@
     <div class="mdl-layout__tab-panel is-active" id="index">
 
       <section class="section--center mdl-grid mdl-grid--no-spacing mdl-shadow--2dp">
-        <div class="mdl-card mdl-cell mdl-cell--12-col" style="min-height:200px; height:auto;">
+        <div class="mdl-card mdl-cell mdl-cell--12-col" style="min-height:200px;height:auto">
           <div class="mdl-card__supporting-text mdl-grid mdl-grid--no-spacing"
-               style="align-items: center; margin-top: 0px; min-height: 200px;">
+               style="align-items: center; margin-top: 0px; min-height:200px">
             <div class="mdl-cell--12-col" style="text-align: center; padding: 20px;">
               <h4 id="txt_nmsl" style="margin: 0; line-height: 1.6;">准备就绪，请开火</h4>
             </div>
@@ -61,12 +61,23 @@
 
 <script>
   var all_sentences = [];
+  // 定义一个缓冲区，记录最近展示过的索引
+  var recent_indexes = [];
+  // 设定缓冲区大小（例如：最近展示过的 50 条不允许重复）
+  var buffer_size = 50;
 
   $(document).ready(function() {
     // 1. 读取 database.json
     $.getJSON("./database.json", function(data) {
       all_sentences = data;
-      console.log("数据加载完成，共 " + data.length + " 条");
+      // 在控制台打印实际数据量，请务必在电脑F12检查这个数字
+      console.log("数据加载完成，实际载入: " + data.length + " 条");
+
+      // 如果数据总数小于缓冲区，自动缩小缓冲区，避免死循环
+      if (data.length < buffer_size * 2) {
+        buffer_size = Math.floor(data.length / 2);
+      }
+
     }).fail(function() {
       $("#txt_nmsl").text("错误：无法读取 database.json");
     });
@@ -76,37 +87,44 @@
     clipboard.on('success', function(e) {
       var btnSpan = $("#span_copy");
       var originalText = btnSpan.text();
-
-      // 变成“已复制”
       btnSpan.text("✅ 已复制!");
-      $("#btn_nmsl").css("background-color", "#388E3C"); // 变绿提示
-
-      // 1.5秒后恢复
+      $("#btn_nmsl").css("background-color", "#388E3C");
       setTimeout(function() {
         btnSpan.text(originalText);
-        $("#btn_nmsl").css("background-color", "#46c792"); // 恢复原来的颜色
+        $("#btn_nmsl").css("background-color", "#46c792");
       }, 1500);
     });
   });
 
-  // 随机生成函数
+  // 改进后的随机函数
   function random() {
     if (all_sentences.length === 0) {
-      // 如果本地打开（非localhost或github），可能会因为跨域失败，这里做个提示
-      $("#txt_nmsl").text("数据加载中或加载失败 (请确保通过 GitHub Pages 访问)");
+      $("#txt_nmsl").text("数据加载中...");
       return;
     }
 
-    var index = Math.floor(Math.random() * all_sentences.length);
+    var index = -1;
+    var max_retries = 10; // 最大重试次数，防止运气太差导致卡死
+    var retries = 0;
+
+    // 核心逻辑：抽签，如果发现最近抽到过，就重抽
+    do {
+      index = Math.floor(Math.random() * all_sentences.length);
+      retries++;
+    } while (recent_indexes.includes(index) && retries < max_retries);
+
+    // 更新缓冲区
+    recent_indexes.push(index);
+    // 如果缓冲区满了，把最早进入的那个删掉（队列先进先出）
+    if (recent_indexes.length > buffer_size) {
+      recent_indexes.shift();
+    }
+
     var text = all_sentences[index];
 
-    // 更新文字显示
     $("#txt_nmsl").text(text);
-
-    // 更新复制按钮的剪贴板内容
     $("#btn_nmsl").attr("data-clipboard-text", text);
   }
 </script>
 </body>
-
 </html>
